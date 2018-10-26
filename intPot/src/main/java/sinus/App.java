@@ -1,15 +1,24 @@
 package sinus;
 
+import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.Point;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.Scanner;
+
+import javax.swing.JFrame;
 
 public class App 
 {
-    public static int period = 4, count = 10; 
+    public static JFrame frame;
+    public static int period = 4, count = 10, index = 1; 
     public static double c = 2 * Math.PI / period;
 
     public static double[] approx(double[] points, int scale, double[] min) {
@@ -59,9 +68,8 @@ public class App
         return x;
     } 
 
-    public static double[] getPoints(int n)
+    public static double[] getPoints(int n, int exp)
     {
-        int exp = 4;
         int base = ((int)Math.pow(10, exp) % n);
 
         double[] points = new double[100];
@@ -77,7 +85,7 @@ public class App
 
     public static double getA( int n )
     {
-        double[] points = getPoints(n);
+        double[] points = getPoints(n, 4);
         double[] min = {Double.POSITIVE_INFINITY, 0, 0};
 
         for (int i = 0; i < 10; i++) {
@@ -92,6 +100,24 @@ public class App
 
         System.out.println(n+",  "+a+" + "+b+" * sin( "+c+" * x + "+min[2]+" )");
         return b;
+    }
+
+    public static BufferedImage plotPoints(double[] points) {
+
+        BufferedImage img = new BufferedImage(frame.getWidth(), frame.getHeight(), BufferedImage.TYPE_INT_RGB);
+        Graphics g = img.getGraphics();
+
+        g.setColor(Color.WHITE);
+        g.fillRect(0, 0, img.getWidth(), img.getHeight());
+        g.setColor(Color.BLACK);
+
+        g.drawLine(0, img.getHeight() - 20, img.getWidth(), img.getHeight() - 20);
+
+        for (int i = 0; i < points.length; i++) {
+            g.fillRect(30 + i * 20, img.getHeight() - 20 - (int)(points[i] / 20), 10, 10);
+        }
+
+        return img;
     }
 
     public static Double[][] sort(ArrayList<Double[]> comp) {
@@ -111,7 +137,7 @@ public class App
         return out;
     }
 
-    public static void main(String[] args) {
+    public static void temp(String[] args) {
         
         ArrayList<Double[]> list = new ArrayList<>(); 
         ArrayList<Integer> pass = new ArrayList<>();
@@ -136,7 +162,33 @@ public class App
             stream.close();
         } catch (Exception e) {
             System.out.println("Couldn't open file!");
-        }
-        
+        }   
+    }
+
+    public static void main(String[] args) {  
+        frame = new JFrame();
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setVisible(true);
+        frame.setSize(1200, 600);
+
+        frame.addKeyListener(new KeyListener(){
+            public void keyTyped(KeyEvent e) {
+                if (e.getKeyChar() == ' ') {
+                    frame.getGraphics().drawImage(plotPoints(getPoints(107*109, index)), 0, 0, null);
+                } else if(e.getKeyChar() == 'a') { 
+                    index--;
+                    System.out.println(index);
+                } else if(e.getKeyChar() == 'd') {
+                    index++;
+                    System.out.println(index);
+                }
+            }
+
+            public void keyPressed(KeyEvent e) {
+            }
+
+            public void keyReleased(KeyEvent e) {
+            }
+        });
     }
 }
