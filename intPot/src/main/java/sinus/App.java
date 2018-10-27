@@ -10,6 +10,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -70,13 +71,13 @@ public class App
 
     public static double[] getPoints(int n, int exp)
     {
-        int base = ((int)Math.pow(10, exp) % n);
+        BigInteger base = BigInteger.valueOf(10).pow(exp);
 
-        double[] points = new double[100];
+        double[] points = new double[200];
 
-        for (int i = 0; i < 100; i++) 
+        for (int i = 0; i < 200; i++) 
         {
-            int res = (int)Math.pow(base, i+1) % n;
+            int res = base.modPow(BigInteger.valueOf(i+1), BigInteger.valueOf(n)).intValue();
             points[i] = res;
         }
 
@@ -111,10 +112,13 @@ public class App
         g.fillRect(0, 0, img.getWidth(), img.getHeight());
         g.setColor(Color.BLACK);
 
-        g.drawLine(0, img.getHeight() - 20, img.getWidth(), img.getHeight() - 20);
+        double fact = 1;
+
+        g.drawLine(0, img.getHeight() - 20 - (int)fact, img.getWidth(), img.getHeight() - 20 - (int)fact);
 
         for (int i = 0; i < points.length; i++) {
-            g.fillRect(30 + i * 20, img.getHeight() - 20 - (int)(points[i] / 20), 10, 10);
+            System.out.println(i+", "+points[i]);
+            g.fillRect(30 + i * 30, img.getHeight() - 20 - (int)(points[i] *fact), 10, 10);
         }
 
         return img;
@@ -137,7 +141,7 @@ public class App
         return out;
     }
 
-    public static void temp(String[] args) {
+    public static void checkPrimes() {
         
         ArrayList<Double[]> list = new ArrayList<>(); 
         ArrayList<Integer> pass = new ArrayList<>();
@@ -165,16 +169,46 @@ public class App
         }   
     }
 
-    public static void main(String[] args) {  
+    public static String dft(double[] points) {
+
+        double[] guessIm = new double[points.length];
+        double[] guessRe = new double[points.length];
+
+        for (int i = 0; i < points.length; i++) {
+            
+            double sumIm = 0;
+            double sumRe = 0;
+
+            for (int u = 0; u < points.length; u++) {
+                sumIm -= Math.sin(i * u * 2 * Math.PI / points.length) * points[u];
+                sumRe += Math.cos(i * u * 2 * Math.PI / points.length) * points[u];
+            }
+
+            guessIm[i] = sumIm;
+            guessRe[i] = sumRe;
+            
+        }
+
+        String out = "";
+        out += guessRe[0] / points.length;
+
+        for (int i = 1; i < points.length; i++) {
+             out += " + " + guessRe[i] / points.length + " * cos(" + i + " * 2 * pi / " + points.length + " * x) - " + guessIm[i] / points.length + " * sin(" + i + " * 2 * pi / " + points.length + " * x)";
+        }
+
+        return out;
+    }
+
+    public static void showMod(final int p, final int q) {  
         frame = new JFrame();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
-        frame.setSize(1200, 600);
+        frame.setSize(1600, 600);
 
         frame.addKeyListener(new KeyListener(){
             public void keyTyped(KeyEvent e) {
                 if (e.getKeyChar() == ' ') {
-                    frame.getGraphics().drawImage(plotPoints(getPoints(107*109, index)), 0, 0, null);
+                    frame.getGraphics().drawImage(plotPoints(getPoints(p * q, index)), 0, 0, null);
                 } else if(e.getKeyChar() == 'a') { 
                     index--;
                     System.out.println(index);
@@ -190,5 +224,36 @@ public class App
             public void keyReleased(KeyEvent e) {
             }
         });
+    }
+
+    public static double[] getPeriod(double[] vals) {
+        int per = 0;
+        double start = 1;
+
+        for (int i = 0; i < vals.length; i++) {
+            per++;
+            if (start == vals[i]) break;
+        }
+
+        double[] out = new double[per];
+        out[0] = 1;
+
+        for (int i = 0; i < per-1; i++) {
+            out[i+1] = vals[i];
+        }
+
+        return out;
+    }
+
+    public static void  main(String[] args) {
+        double[] points = new double[10];
+
+        for (int i = 0; i < points.length; i++) {
+            points[i] = 1 + Math.sin(i + 2);
+        }
+
+        double[] in = {1, 4, 16};
+
+        System.out.println(dft(getPeriod(getPoints(77, 4))));
     }
 }
